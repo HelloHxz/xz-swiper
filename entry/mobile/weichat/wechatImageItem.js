@@ -95,15 +95,13 @@ export default class WeiChatImageItem extends React.Component {
             this.fingerCount = 2;
             this.enableSingeFingerAction = false;
             const curDistance = this.getDistanceBetweenTwoPointer(e);
-            const scaleSeed= (curDistance-this.orignDistance)/this.orignDistance;
+            const scaleSeed= (curDistance-this.orignDistance)/(this.orignDistance*3);
             this.originScale += scaleSeed;
-            this.originScale = this.originScale<0.5? 0.5:this.originScale;
-            this.originScale = this.originScale>3? 3:this.originScale;
-            curIS.transform ='scale('+(this.originScale)+')';
+            this.originScale = this.originScale<0.6? 0.6:this.originScale;
+            this.originScale = this.originScale>8? 8:this.originScale;
+            curIS.transform ='scale('+(this.originScale)+') translate(0,0)';
             curIS.transformOrigin = this.imageFocusPointer.x+'px '+this.imageFocusPointer.y+'px';
-            // if(this.props.output){
-            //     this.props.output('');
-            // }
+            
             this.setState({
                 imageStyle: curIS,
                 scale:this.originScale,
@@ -116,13 +114,15 @@ export default class WeiChatImageItem extends React.Component {
             if(this.state.scale>1){
                 const rect =  this.img.getBoundingClientRect();
                 const curSingleFingerPointer = e.touches[0];
-
-               
                 if(curSingleFingerPointer.pageX>this.singleFingerPointer.pageX){
                     // 向右
+                    if(this.props.output){
+                        this.props.output(rect.left);
+                    }
                     if(rect.left>0){
                         return;
                     }
+                
                 }else{
                     // 向左
                     if(rect.right<document.body.offsetWidth){
@@ -131,16 +131,12 @@ export default class WeiChatImageItem extends React.Component {
                 }
                 const curLeft  = this.originLeft + (curSingleFingerPointer.pageX - this.singleFingerPointer.pageX);
                 const curTop  = this.originTop + (curSingleFingerPointer.pageY - this.singleFingerPointer.pageY);
-                const distance = this.getDistance(curLeft,curTop,this.originLeft,this.originTop);
-               
-                if(distance>34){
-                    curIS.transform ='translate('+(curLeft)+'px,'+(curTop)+'px) scale('+(this.state.scale)+')';
-                    this.setState({
-                        imageStyle: curIS,
-                        left:curLeft,
-                        top:curTop,
-                    });
-                }
+                curIS.transform ='scale('+(this.state.scale)+') translate('+(curLeft)+'px,'+(curTop)+'px)';
+                this.setState({
+                    imageStyle: curIS,
+                    left:curLeft,
+                    top:curTop,
+                });
                
             }
             
@@ -153,6 +149,12 @@ export default class WeiChatImageItem extends React.Component {
         }else {
             this.props.swiper.toggleEnableGoPre(true);
             this.props.swiper.toggleEnableGoNext(true);
+        }
+        if(this.fingerCount===2) {
+            this.fingerCount = 1;
+            if(this.state.scale < 1) {
+                this.reset();
+            }
         }
         if(this.enableSingeFingerAction === false) {
             if(this.clearTimeoutId){
@@ -168,15 +170,17 @@ export default class WeiChatImageItem extends React.Component {
         if(!this.enableSingeFingerAction){
             return;
         }
+        this.reset();
+    }
+    reset() {
         const curIS = JSON.parse(JSON.stringify(this.state.imageStyle));
-        curIS.transform ='translate(0,0) scale(1)';
+        curIS.transform ='scale(1) translate(0,0)';
         this.setState({
             imageStyle: curIS,
             scale:1,
             // left:0,
             // top:0,
         });
-        
     }
     render (){
         const { data } = this.props;
