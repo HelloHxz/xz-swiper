@@ -108,13 +108,13 @@ export default class WeiChatImageItem extends React.Component {
             }
             const imageOffsetLeft = curImageFocusPointer.x-this.imageFocusPointer.x;
             const imageOffsetTop = curImageFocusPointer.y-this.imageFocusPointer.y;
+           
+            const curLeft =  0-imageOffsetLeft;
+            const curTop = 0- imageOffsetTop;
+            curIS.transform ='translate3d('+(curLeft)+'px,'+(curTop)+'px,0) scale('+(this.originScale)+')';
             if(this.props.output){
-                this.props.output(this.originLeft);
+                this.props.output(curLeft+" "+curTop);
             }
-            const curLeft =  this.originLeft - imageOffsetLeft;
-            const curTop = this.originTop - imageOffsetTop;
-            curIS.transform ='translate('+(curLeft)+'px,'+(curLeft)+'px) scale('+(this.originScale)+')';
-            
             this.setState({
                 imageStyle: curIS,
                 scale:this.originScale,
