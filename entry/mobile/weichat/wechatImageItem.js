@@ -73,10 +73,9 @@ export default class WeiChatImageItem extends React.Component {
             this.fingerCount = 2;
             this.twoFingerMiddlePointer = this.getMiddlePointBetweenTwpPointer(e);
             this.imageFocusPointer = {
-                x: (this.twoFingerMiddlePointer.x- this.imageRect.left),
-                y: (this.twoFingerMiddlePointer.y - this.imageRect.top),
+                x: (this.twoFingerMiddlePointer.x- this.imageRect.left)/this.originScale,
+                y: (this.twoFingerMiddlePointer.y - this.imageRect.top)/this.originScale,
             };
-          
             this.orignDistance = this.getDistanceBetweenTwoPointer(e);
         } else {
             this.singleFingerPointer = e.touches[0];
@@ -100,26 +99,14 @@ export default class WeiChatImageItem extends React.Component {
             this.originScale += scaleSeed;
             this.originScale = this.originScale<0.5? 0.5:this.originScale;
             this.originScale = this.originScale>3? 3:this.originScale;
-           // const ImageRect =  this.img.getBoundingClientRect();
-            //const curTwoFingerMiddlePointer = this.getMiddlePointBetweenTwpPointer(e);
-            const curImageFocusPointer = {
-                x: this.imageFocusPointer.x* this.state.scale,
-                y: this.imageFocusPointer.y* this.state.scale,
-            }
-            const imageOffsetLeft = curImageFocusPointer.x-this.imageFocusPointer.x;
-            const imageOffsetTop = curImageFocusPointer.y-this.imageFocusPointer.y;
-           
-            const curLeft =  0-imageOffsetLeft;
-            const curTop = 0- imageOffsetTop;
-            curIS.transform ='translate3d('+(curLeft)+'px,'+(curTop)+'px,0) scale('+(this.originScale)+')';
-            if(this.props.output){
-                this.props.output(curLeft+" "+curTop);
-            }
+            curIS.transform ='scale('+(this.originScale)+')';
+            curIS.transformOrigin = this.imageFocusPointer.x+'px '+this.imageFocusPointer.y+'px';
+            // if(this.props.output){
+            //     this.props.output('');
+            // }
             this.setState({
                 imageStyle: curIS,
                 scale:this.originScale,
-                top:curTop,
-                left:curLeft,
             });
         } else {
             if(!this.enableSingeFingerAction ){
@@ -186,8 +173,8 @@ export default class WeiChatImageItem extends React.Component {
         this.setState({
             imageStyle: curIS,
             scale:1,
-            left:0,
-            top:0,
+            // left:0,
+            // top:0,
         });
         
     }
