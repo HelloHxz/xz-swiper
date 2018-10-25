@@ -91,6 +91,7 @@ export default class WeiChatImageItem extends React.Component {
             this.props.swiper.toggleEnableGoPre(true);
             this.props.swiper.toggleEnableGoNext(true);
         }
+        this.isHasTouchMove = false;
         if(e.touches.length === 2) {
             this.fingerCount = 2;
             this.enableSingeFingerAction = false;
@@ -99,13 +100,7 @@ export default class WeiChatImageItem extends React.Component {
             this.originScale += scaleSeed;
             this.originScale = this.originScale<0.6? 0.6:this.originScale;
             this.originScale = this.originScale>8? 8:this.originScale;
-            curIS.transform ='scale('+(this.originScale)+') translate(0,0)';
-            curIS.transformOrigin = this.imageFocusPointer.x+'px '+this.imageFocusPointer.y+'px';
-            
-            this.setState({
-                imageStyle: curIS,
-                scale:this.originScale,
-            });
+            this.scaleWithMiddlePointer(this.imageFocusPointer,this.originScale,curIS);
         } else {
             if(!this.enableSingeFingerAction ){
                 return;
@@ -114,6 +109,7 @@ export default class WeiChatImageItem extends React.Component {
             if(this.state.scale>1){
                 const rect =  this.img.getBoundingClientRect();
                 const curSingleFingerPointer = e.touches[0];
+                this.isHasTouchMove = true;
                 if(curSingleFingerPointer.pageX>this.singleFingerPointer.pageX){
                     // 向右
                     if(this.props.output){
@@ -122,15 +118,16 @@ export default class WeiChatImageItem extends React.Component {
                     if(rect.left>0){
                         return;
                     }
-                
                 }else{
                     // 向左
                     if(rect.right<document.body.offsetWidth){
                         return;
                     }
                 }
-                const curLeft  = this.originLeft + (curSingleFingerPointer.pageX - this.singleFingerPointer.pageX);
-                const curTop  = this.originTop + (curSingleFingerPointer.pageY - this.singleFingerPointer.pageY);
+                const diffX = curSingleFingerPointer.pageX - this.singleFingerPointer.pageX;
+                const diffY = curSingleFingerPointer.pageY - this.singleFingerPointer.pageY;
+                const curLeft  = this.originLeft + diffX;
+                const curTop  = this.originTop + diffY;
                 curIS.transform ='scale('+(this.state.scale)+') translate('+(curLeft)+'px,'+(curTop)+'px)';
                 this.setState({
                     imageStyle: curIS,
@@ -155,6 +152,32 @@ export default class WeiChatImageItem extends React.Component {
             if(this.state.scale < 1) {
                 this.reset();
             }
+        } else if(this.fingerCount === 1) {
+            if(this.singleFingerPointer) {
+                if(this.beforeSingleFingerPointer) {
+                    if(Math.abs(this.beforeSingleFingerPointer.pageX-this.singleFingerPointer.pageX) < 5 && Math.abs(this.beforeSingleFingerPointer.pageY-this.singleFingerPointer.pageY) < 5) {
+                        this.beforeSingleFingerPointer = null;
+                        if(this.doubleClickTimeout) {
+                            clearTimeout(this.doubleClickTimeout);
+                            this.doubleClickTimeout = null;
+                        }
+                        this.doubleClick(this.singleFingerPointer);
+                    }
+                } else {
+                    this.beforeSingleFingerPointer = this.singleFingerPointer;
+                    if(this.doubleClickTimeout) {
+                        clearTimeout(this.doubleClickTimeout);
+                        this.doubleClickTimeout = null;
+                    }
+                    this.doubleClickTimeout = setTimeout(() => {
+                        this.beforeSingleFingerPointer = null;
+                        if(!this.isHasTouchMove){
+                            this.reset();
+                        }
+                    }, 200);
+                }
+                
+            }
         }
         if(this.enableSingeFingerAction === false) {
             if(this.clearTimeoutId){
@@ -166,11 +189,21 @@ export default class WeiChatImageItem extends React.Component {
             },600);
         }
     }
+    doubleClick(pointer) {
+        const curIS = JSON.parse(JSON.stringify(this.state.imageStyle));
+        this.scaleWithMiddlePointer({x:pointer.pageX,y:pointer.pageY} ,1.5 ,curIS);
+    }
+    scaleWithMiddlePointer(pointer,scale,curIS) {
+        console.log(scale);
+        curIS.transform ='scale('+(scale)+') translate(0,0)';
+        curIS.transformOrigin = pointer.x+'px '+pointer.y+'px';
+        this.setState({
+            imageStyle: curIS,
+            scale,
+        });
+    }
     imageClick(){
-        if(!this.enableSingeFingerAction){
-            return;
-        }
-        this.reset();
+     
     }
     reset() {
         const curIS = JSON.parse(JSON.stringify(this.state.imageStyle));
