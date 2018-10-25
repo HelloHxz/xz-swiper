@@ -63,6 +63,7 @@ export default class WeiChatImageItem extends React.Component {
     onTouchStart(e){
         this.originImageStyle = JSON.parse(JSON.stringify(this.state.imageStyle));
         this.originScale = this.state.scale;
+        this.startTime = new Date().valueOf();
         this.originLeft = this.state.left;
         this.originTop = this.state.top;
         this.enableSingeFingerAction = true;
@@ -91,7 +92,6 @@ export default class WeiChatImageItem extends React.Component {
             this.props.swiper.toggleEnableGoPre(true);
             this.props.swiper.toggleEnableGoNext(true);
         }
-        this.isHasTouchMove = false;
         if(e.touches.length === 2) {
             this.fingerCount = 2;
             this.enableSingeFingerAction = false;
@@ -109,7 +109,6 @@ export default class WeiChatImageItem extends React.Component {
             if(this.state.scale>1){
                 const rect =  this.img.getBoundingClientRect();
                 const curSingleFingerPointer = e.touches[0];
-                this.isHasTouchMove = true;
                 if(curSingleFingerPointer.pageX>this.singleFingerPointer.pageX){
                     // 向右
                     if(this.props.output){
@@ -164,17 +163,17 @@ export default class WeiChatImageItem extends React.Component {
                         this.doubleClick(this.singleFingerPointer);
                     }
                 } else {
-                    this.beforeSingleFingerPointer = this.singleFingerPointer;
-                    if(this.doubleClickTimeout) {
-                        clearTimeout(this.doubleClickTimeout);
-                        this.doubleClickTimeout = null;
-                    }
-                    this.doubleClickTimeout = setTimeout(() => {
-                        this.beforeSingleFingerPointer = null;
-                        if(!this.isHasTouchMove){
-                            this.reset();
+                    if(new Date().valueOf() - this.startTime < 120){
+                        this.beforeSingleFingerPointer = this.singleFingerPointer;
+                        if(this.doubleClickTimeout) {
+                            clearTimeout(this.doubleClickTimeout);
+                            this.doubleClickTimeout = null;
                         }
-                    }, 200);
+                        this.doubleClickTimeout = setTimeout(() => {
+                            this.beforeSingleFingerPointer = null;
+                            this.reset();
+                        }, 200);
+                    }
                 }
                 
             }
