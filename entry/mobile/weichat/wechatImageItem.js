@@ -5,8 +5,7 @@ export default class WeiChatImageItem extends React.Component {
         super(props);
         this.state = {
             image: null,
-            imageStyle: {
-            },
+            imageStyle: null,
             left:0,
             top:0,
             scale: 1
@@ -193,7 +192,6 @@ export default class WeiChatImageItem extends React.Component {
         this.scaleWithMiddlePointer({x:pointer.pageX,y:pointer.pageY} ,1.5 ,curIS);
     }
     scaleWithMiddlePointer(pointer,scale,curIS) {
-        console.log(scale);
         curIS.transform ='scale('+(scale)+') translate(0,0)';
         curIS.transformOrigin = pointer.x+'px '+pointer.y+'px';
         this.setState({
@@ -223,7 +221,7 @@ export default class WeiChatImageItem extends React.Component {
         toucheEvent.onTouchEnd = this.onTouchEnd.bind(this);
         return (
         <div {...toucheEvent} className='xz-weichat-item'>
-            { this.state.imageStyle ? <img onClick={this.imageClick.bind(this)} className='xz-weichat-image' ref={(img) => {this.img = img;}} style={this.state.imageStyle} src={src}/> : null}
+            { this.state.imageStyle ? <img onClick={this.imageClick.bind(this)} className='xz-weichat-image' ref={(img) => {this.img = img;}} style={this.state.imageStyle} src={src}/> : <span style={{ color:'#fff' }}>Loading...</span>}
         </div>);
     }
 }
